@@ -1,0 +1,63 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
+
+begin
+  require 'git-switcher'
+rescue LoadError
+  require 'rubygems'
+  require 'git-switcher'
+end
+
+options = Trollop::options do
+
+  version Git::Switcher::COPYRIGHT
+  banner Git::Switcher::BANNER
+
+end
+
+raise "TTY only!" unless STDIN.tty? && STDOUT.tty?
+
+repo = Git::Switcher::Repo.new(Git::Switcher::Repo.discover(Dir.pwd))
+
+# this holds the menu item that will be selected
+# if the user just presses "enter" ... typically
+# this will be "the next thing on the list", ie.
+# the next branch or the next tag on the list...
+default_menu_item = nil
+
+running = true ; while running
+
+  # clear the screen (bit of a hack)
+  print "\e[H\e[2J"
+
+  # generate and print the repo menu
+  puts(menu = Menu.for(repo))
+
+  # print prompt, read response and execute command corresponding to the menu item
+  begin
+    puts ; print default_menu_item ? "(#{default_menu_item}) > " : 'Your selection > '
+    if gets
+      case (response = $_.chomp.strip)
+      when 'quit'
+        running = false
+      when *menu.shortcut_keys, ''
+        if (menu_item = menu[response] || default_menu_item)
+          # execute the command for the selected menu item
+          `#{menu_item.command}`
+          # store the menu item that succeeds the selected one
+          default_menu_item = menu_item.next
+        end
+      else
+        # invalid command... ignore!
+      end
+    else
+      puts "^D" ; running = false # user has pressed ^D
+    end
+  rescue Interrupt
+    puts ; running = false # user has pressed ^C
+  end
+
+end
+
+# That's all, Folks!
