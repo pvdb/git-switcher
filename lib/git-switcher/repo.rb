@@ -61,7 +61,9 @@ class Git::Switcher::Repo < Rugged::Repository
 
   def reachable_tags # time-ordered, as well
     tags.find_all { |tag| reachable? tag }.sort { |first_tag, second_tag|
-      target(first_tag).time <=> target(second_tag).time
+      # use 'author' timestamp, not 'committer' timestamp, e.g. in case
+      # the tag's target commit was the result of a rebase operation!!!
+      target(first_tag).author[:time] <=> target(second_tag).author[:time]
     }
   end
 
