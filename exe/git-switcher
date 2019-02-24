@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+
+lib = File.expand_path('../lib', __dir__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require 'git/switcher'
+
+def putm(message, color = :to_s)
+  return if message.strip.empty?
+
+  puts '', Rainbow(message).send(color)
+  print Rainbow('Press ⏎ to continue ... ').italic
+  $stdin.gets
+end
+
+repo = Rugged::Repository.new(Dir.pwd)
+menu = Git::Switcher::Menu.for(repo)
+
+# (optional) script to run after every checkout
+switcher = File.join(repo.workdir, '.switcher')
+
+loop do
+  print "\e[H\e[2J", menu, "\n", "\n" # clear the screen first (^L)
+
+  if (default_menu_item = menu.default_menu_item)
+    default_shortcut = format('⏎ [%2s]', default_menu_item.shortcut)
+    print Rainbow(default_shortcut).bold.steelblue, ' '
+  end
+  print "\t", Rainbow('your selection =>').steelblue, ' '
+
+  response = begin
+               $stdin.gets&.strip
+             rescue Interrupt
+               nil
+             end
+
+  break unless response # ^C and ^D
+
+  menu_item = if response.empty?
+                default_menu_item
+              else
+                menu[response]
+              end
+
+  next unless menu_item
+
+  err_msg = `2>&1 git checkout --quiet #{menu_item.reference.name}`
+  if $CHILD_STATUS.success? && File.executable?(switcher)
+    cmd_msg = `2>&1 #{switcher}`
+    putm(cmd_msg, :green)
+  else
+    putm(err_msg, :red)
+  end
+end
+
+# That's all Folks!
