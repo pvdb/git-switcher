@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+set -vx
+
+[ -f Brewfile ] && brew bundle
+
+rbenv install -s
+gem install --conservative bundler
+bundle install
+
+set +vxeu
+echo
+
+# That's all Folks!

@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'git/switcher'
+
+require 'pry'
+Pry.start
+
+# That's all Folks!
