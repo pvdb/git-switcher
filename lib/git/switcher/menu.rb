@@ -38,10 +38,12 @@ module Git
         remote_branches = @repo.branches.find_all(&:remote?)
         local_branches = @repo.branches.find_all(&:local?)
 
+        shortcuts = (1..Float::INFINITY).each
+
         @submenus = [
-          submenu_for('REMOTE BRANCHES', remote_branches, shortcuts('a')),
-          submenu_for('LOCAL BRANCHES', local_branches, shortcuts(1)),
-          submenu_for('TAGS', @repo.tags, shortcuts(100)),
+          submenu_for('REMOTE BRANCHES', remote_branches, shortcuts),
+          submenu_for('LOCAL BRANCHES', local_branches, shortcuts),
+          submenu_for('TAGS', @repo.tags, shortcuts),
         ].compact
 
         @menu_items = @submenus.map(&:menu_items).flatten
