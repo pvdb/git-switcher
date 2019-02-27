@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    git-switcher (1.0.3)
+    git-switcher (1.0.4)
       rainbow (~> 3.0)
       rugged (~> 0.27)
 
@@ -12,8 +12,8 @@ GEM
     coderay (1.1.2)
     jaro_winkler (1.5.2)
     method_source (0.9.2)
-    minitest (5.8.5)
-    parallel (1.13.0)
+    minitest (5.11.3)
+    parallel (1.14.0)
     parser (2.6.0.0)
       ast (~> 2.4.0)
     powerpack (0.1.2)
@@ -33,7 +33,7 @@ GEM
       ruby-progressbar (~> 1.7)
       unicode-display_width (~> 1.4.0)
     ruby-progressbar (1.10.0)
-    rugged (0.27.7)
+    rugged (0.28.0)
     unicode-display_width (1.4.1)
 
 PLATFORMS
