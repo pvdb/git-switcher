@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    git-switcher (1.0.1)
+    git-switcher (1.0.2)
       rainbow (~> 3.0)
       rugged (~> 0.27)
 
