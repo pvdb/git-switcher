@@ -1,53 +1,41 @@
 module Git
   module Switcher
+
+    Submenu = Struct.new(:label, :menu_items) do
+      def to_s
+        header = Rainbow(label).steelblue
+        "\n\t#{header}\n\n" + menu_items.join("\n")
+      end
+    end
+
+    MenuItem = Struct.new(:repo, :shortcut, :reference, :next) do
+      HEAD = Rainbow(' <- HEAD ***').bold.aquamarine.freeze
+
+      def head?
+        reference.targets?(repo.head)
+      end
+
+      def to_s
+        name = reference.name
+        label = format('[%2s]', shortcut)
+        format(
+          "  %<label>s\t%<name>s%<head>s",
+          label: head? ? Rainbow(label).bold : label,
+          name: head? ? Rainbow(name).inverse : name,
+          head: head? ? HEAD : '',
+        )
+      end
+    end
+
     class Menu
-
-      Submenu = Struct.new(:label, :menu_items) do
-        def to_s
-          header = Rainbow(label).steelblue
-          "\n\t#{header}\n\n" + menu_items.join("\n")
-        end
-      end
-
-      MenuItem = Struct.new(:repo, :shortcut, :reference, :next) do
-        HEAD = Rainbow(' <- HEAD ***').bold.aquamarine.freeze
-
-        def head?
-          reference.targets?(repo.head)
-        end
-
-        def to_s
-          name = reference.name
-          label = format('[%2s]', shortcut)
-          format(
-            "  %<label>s\t%<name>s%<head>s",
-            label: head? ? Rainbow(label).bold : label,
-            name: head? ? Rainbow(name).inverse : name,
-            head: head? ? HEAD : '',
-          )
-        end
-      end
-
       def self.for(repo)
         new(repo)
       end
 
       def initialize(repo)
         @repo = repo
-
-        remote_branches = @repo.branches.find_all(&:remote?)
-        local_branches = @repo.branches.find_all(&:local?)
-
-        shortcuts = (1..Float::INFINITY).each
-
-        @submenus = [
-          submenu_for('REMOTE BRANCHES', remote_branches, shortcuts),
-          submenu_for('LOCAL BRANCHES', local_branches, shortcuts),
-          submenu_for('TAGS', @repo.tags, shortcuts),
-        ].compact
-
+        @submenus = submenus
         @menu_items = @submenus.map(&:menu_items).flatten
-
         @lookup = Hash[@menu_items.map(&:shortcut).zip(@menu_items)]
       end
 
@@ -69,17 +57,26 @@ module Git
 
       private
 
-      def shortcuts(initial)
-        shortcut = initial
-        Enumerator.new do |yielder|
-          loop do
-            yielder << shortcut
-            shortcut = case shortcut
-                       when Integer then shortcut + 1
-                       when String then (shortcut.ord + 1).chr
-                       end
-          end
-        end
+      def remote_branches
+        @repo.branches.find_all(&:remote?)
+      end
+
+      def local_branches
+        @repo.branches.find_all(&:local?)
+      end
+
+      def tags
+        @repo.tags # TODO: distinguish between annotated and lightweight tags
+      end
+
+      def submenus
+        shortcuts = (1..Float::INFINITY).each
+
+        [
+          submenu_for('REMOTE BRANCHES', remote_branches, shortcuts),
+          submenu_for('LOCAL BRANCHES', local_branches, shortcuts),
+          submenu_for('TAGS', tags, shortcuts),
+        ].compact
       end
 
       def submenu_for(label, references, shortcuts)
