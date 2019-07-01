@@ -19,6 +19,8 @@ Metrics/MethodLength:
   Enabled: false
 Metrics/ModuleLength:
   Enabled: false
+Metrics/BlockLength:
+  Enabled: false
 
 Style/BlockDelimiters:
   Enabled: false
